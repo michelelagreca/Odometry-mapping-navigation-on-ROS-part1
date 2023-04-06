@@ -24,15 +24,12 @@ public:
     }
 
     void callback(const geometry_msgs::Quaternion& msg){
-        /*
         cust_msg.x = msg.x;
         cust_msg.y = msg.y;
         cust_msg.th = msg.w;
         cust_msg.timestamp = std::to_string(ros::Time::now().toSec());   
         pub.publish(cust_msg);
-        */
-
-       ROS_INFO("Hello");
+        
     }
 };
 
