@@ -1,0 +1,10 @@
+<launch>
+
+    <param name="pose_x" value="0.0" />
+    <param name="pose_y" value="0.0" />
+    <param name="pose_theta" value="0.0" />
+    <param name="/use_sim_time" value="true"/>
+
+    <node pkg="first_project" type="odom_node" name="odom" output="screen" />
+
+</launch>
