@@ -13,6 +13,7 @@ class odom{
 
 private:
     double omega, v;
+    double vx, vy;
     double new_x, new_y, new_theta;
     double d = 2.8;
     double R, alpha;
@@ -30,10 +31,11 @@ private:
 
     ros::Subscriber sub_steer_speed;
     ros::Publisher pub_custom_msg;
+    ros::Publisher pub_odom_msg;
 
     ros::Timer timer;
 
-    nav_msgs::Odometry odom_message;
+    nav_msgs::Odometry odom_msg;
     first_project::Odom cust_msg;
 
 
@@ -45,6 +47,7 @@ public:
 
         sub_steer_speed = n.subscribe("/speed_steer", 1000, &odom::callback_sub_data, this);
         pub_custom_msg = n.advertise<first_project::Odom>("/custom_odometry", 1000); 
+        pub_odom_msg = n.advertise<first_project::Odom>("/odometry", 1000);
 
         timer = n.createTimer(ros::Duration(0.02), &odom::callback_publisher_timer, this); 
     }
@@ -53,10 +56,8 @@ public:
         ros::Duration time_difference =  ros::Time::now() - current_time;
         current_time = ros::Time::now();
         
-        if (time_difference.toSec() < 0.05) {
+        if (time_difference.toSec() < 0.05) 
             t_s = time_difference.toSec(); //time of sampling
-            ROS_INFO_STREAM(t_s);
-        }
         else
             t_s = 0;
 
@@ -67,13 +68,6 @@ public:
             omega = v * R;
         else
             omega = 0;
-        /*
-        ROS_INFO_STREAM("current alpha: " << std::to_string(alpha));
-        ROS_INFO_STREAM("current R: " << std::to_string(R));
-        ROS_INFO_STREAM("current v: " << std::to_string(v));
-        ROS_INFO_STREAM("current omega: " << std::to_string(omega));
-        */
-
 
         integrations(msg, t_s);   
 
@@ -82,32 +76,37 @@ public:
         cust_msg.th = current_theta;
         cust_msg.timestamp = std::to_string(current_time.toSec());
 
+        odom_msg.header.stamp = current_time;
+        odom_msg.header.frame_id = "odom";
+
+        odom_msg.pose.pose.position.x = current_x;
+        odom_msg.pose.pose.position.y = current_y;
+        odom_msg.pose.pose.position.z = 0.0;
+        odom_msg.pose.pose.orientation = msg;
+
+        odom_msg.child_frame_id = "base_link";
+        odom_msg.twist.twist.linear.x = vx;
+        odom_msg.twist.twist.linear.y = vy;
+        odom_msg.twist.twist.linear.z = omega;
     }
 
     void callback_publisher_timer(const ros::TimerEvent& ev) {
-        
+
         if ((latest_sent_time - current_time).toSec() != 0) {
             latest_sent_time = current_time;
 
             pub_custom_msg.publish(cust_msg);
+            pub_odom_msg.publish(odom_msg);
         }
 
-        
     }
 
     void integrations(const geometry_msgs::Quaternion& msg, double t_s) {
         current_x = current_x + v*t_s*cos(current_theta);
         current_y = current_y + v*t_s*sin(current_theta);
+        vx = v*cos(current_theta);
+        vy = v*sin(current_theta);
         current_theta = current_theta + omega*t_s;
-        
-        /*
-        ROS_INFO_STREAM("current ts: " << std::to_string(t_s));
-        ROS_INFO_STREAM("current x: " << std::to_string(current_x));
-        ROS_INFO_STREAM("current y: " << std::to_string(current_y));
-        ROS_INFO_STREAM("current theta: " << std::to_string(current_theta));
-        ROS_INFO_STREAM("current v: " << std::to_string(v));
-        */
-        
     }
 
 
