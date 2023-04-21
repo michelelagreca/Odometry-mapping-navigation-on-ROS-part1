@@ -4,6 +4,7 @@
 #include "first_project/Odom.h"
 #include <time.h>
 #include "std_msgs/String.h"
+#include <tf/transform_broadcaster.h>
 
 #include <sstream>
 #include <cmath>
@@ -69,7 +70,7 @@ public:
         else
             omega = 0;
 
-        integrations(msg, t_s);   
+        integrations(t_s);   
 
         cust_msg.x = current_x;
         cust_msg.y = current_y;
@@ -79,10 +80,12 @@ public:
         odom_msg.header.stamp = current_time;
         odom_msg.header.frame_id = "odom";
 
+        geometry_msgs::Quaternion odom_quat = tf::createQuaternionMsgFromYaw(current_theta);
+
         odom_msg.pose.pose.position.x = current_x;
         odom_msg.pose.pose.position.y = current_y;
         odom_msg.pose.pose.position.z = 0.0;
-        odom_msg.pose.pose.orientation = msg;
+        odom_msg.pose.pose.orientation = odom_quat;
 
         odom_msg.child_frame_id = "base_link";
         odom_msg.twist.twist.linear.x = vx;
@@ -101,7 +104,7 @@ public:
 
     }
 
-    void integrations(const geometry_msgs::Quaternion& msg, double t_s) {
+    void integrations(double t_s) {
         current_x = current_x + v*t_s*cos(current_theta);
         current_y = current_y + v*t_s*sin(current_theta);
         vx = v*cos(current_theta);
