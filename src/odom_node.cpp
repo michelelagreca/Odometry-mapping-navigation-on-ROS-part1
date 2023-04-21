@@ -10,6 +10,8 @@
 #include <cmath>
 #include <string.h>
 
+#include "first_project/reset_odom.h"
+
 class odom{
 
 private:
@@ -34,6 +36,8 @@ private:
     ros::Publisher pub_custom_msg;
     ros::Publisher pub_odom_msg;
 
+    ros::ServiceServer service;
+
     ros::Timer timer;
 
     nav_msgs::Odometry odom_msg;
@@ -49,6 +53,8 @@ public:
         sub_steer_speed = n.subscribe("/speed_steer", 1000, &odom::callback_sub_data, this);
         pub_custom_msg = n.advertise<first_project::Odom>("/custom_odometry", 1000); 
         pub_odom_msg = n.advertise<first_project::Odom>("/odometry", 1000);
+
+        service = n.advertiseService("reset_odom", &odom::reset_odometry, this);
 
         timer = n.createTimer(ros::Duration(0.02), &odom::callback_publisher_timer, this); 
     }
@@ -110,6 +116,15 @@ public:
         vx = v*cos(current_theta);
         vy = v*sin(current_theta);
         current_theta = current_theta + omega*t_s;
+    }
+
+    bool reset_odometry(first_project::reset_odom::Request &req,first_project::reset_odom::Response &res){
+        current_x = 0.0;
+        current_y = 0.0;
+        current_theta = 0.0;
+        ROS_INFO("Resetted odometry");
+        res.resetted = true;
+        return true;
     }
 
 
