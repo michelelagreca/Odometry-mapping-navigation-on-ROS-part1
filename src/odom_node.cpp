@@ -25,8 +25,6 @@ private:
 
     double t_s;
 
-    bool reset;
-
     ros::NodeHandle n;
 
     ros::Time current_time = ros::Time::now();
@@ -42,6 +40,11 @@ private:
 
     nav_msgs::Odometry odom_msg;
     first_project::Odom cust_msg;
+
+    tf::TransformBroadcaster br;
+
+    tf::Transform transform;
+    tf::Quaternion q;
 
 
 public:
@@ -97,6 +100,11 @@ public:
         odom_msg.twist.twist.linear.x = vx;
         odom_msg.twist.twist.linear.y = vy;
         odom_msg.twist.twist.linear.z = omega;
+
+
+        transform.setOrigin(tf::Vector3(current_x, current_y, 0));
+        q.setRPY(0, 0, current_theta);
+        transform.setRotation(q);
     }
 
     void callback_publisher_timer(const ros::TimerEvent& ev) {
@@ -106,6 +114,8 @@ public:
 
             pub_custom_msg.publish(cust_msg);
             pub_odom_msg.publish(odom_msg);
+
+            br.sendTransform(tf::StampedTransform(transform, current_time, "odom", "base_link"));
         }
 
     }
