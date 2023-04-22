@@ -73,7 +73,7 @@ public:
         R = d / tan(alpha);
         v = msg.x;
         if (alpha != 0)
-            omega = v * R;
+            omega = v / R;
         else
             omega = 0;
 
