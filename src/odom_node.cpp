@@ -102,8 +102,8 @@ public:
         odom_msg.twist.twist.linear.z = omega;
 
 
-        transform.setOrigin(tf::Vector3(current_x, current_y, 0));
-        q.setRPY(0, 0, current_theta);
+        transform.setOrigin(tf::Vector3(current_x, current_y, 0.0));
+        q.setRPY(0.0, 0.0, current_theta);
         transform.setRotation(q);
     }
 
