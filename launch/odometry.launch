@@ -8,9 +8,9 @@
 
     <node pkg="first_project" type="odom_node" name="odom" output="screen"/>
 
-    <node pkg="tf" type="static_transform_publisher" name="front_left" args="1.85 0.93 0.0 0.81 0.0 3.14 base_link sick_fl 100" />
-    <node pkg="tf" type="static_transform_publisher" name="front_right" args="1.85 -0.93 0.0 -0.76 0.0 3.14 base_link sick_fr 100" />
-    <node pkg="tf" type="static_transform_publisher" name="back_left" args="-1.85 0.93 0.0 2.38 0.0 3.14 base_link sick_bl 100" />
-    <node pkg="tf" type="static_transform_publisher" name="back_right" args="-1.75 -0.8 0.0 -2.30 0.0 3.14 base_link sick_br 100" />
+    <node pkg="tf" type="static_transform_publisher" name="front_left" args="1.85 0.93 0.0 0.81 0.0 3.14 base_link sick_front_left 100" />
+    <node pkg="tf" type="static_transform_publisher" name="front_right" args="1.85 -0.93 0.0 -0.76 0.0 3.14 base_link sick_front_right 100" />
+    <node pkg="tf" type="static_transform_publisher" name="rear_left" args="-1.85 0.93 0.0 2.38 0.0 3.14 base_link sick_rear_left 100" />
+    <node pkg="tf" type="static_transform_publisher" name="rear_right" args="-1.75 -0.8 0.0 -2.30 0.0 3.14 base_link sick_rear_right 100" />
 
 </launch>
