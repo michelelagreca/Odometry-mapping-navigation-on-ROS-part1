@@ -17,7 +17,6 @@ class odom{
 private:
     double omega, v;
     double vx, vy;
-    double new_x, new_y, new_theta;
     double d = 2.8;
     double R, alpha;
 
@@ -25,18 +24,17 @@ private:
 
     double t_s;
 
+    bool time_init = false;
+
     ros::NodeHandle n;
 
     ros::Time current_time = ros::Time::now();
-    ros::Time latest_sent_time = ros::Time::now();
 
     ros::Subscriber sub_steer_speed;
     ros::Publisher pub_custom_msg;
     ros::Publisher pub_odom_msg;
 
     ros::ServiceServer service;
-
-    ros::Timer timer;
 
     nav_msgs::Odometry odom_msg;
     first_project::Odom cust_msg;
@@ -49,27 +47,27 @@ private:
 
 public:
     odom(){
-        n.getParam("pose_x", current_x);
-        n.getParam("pose_y", current_y);
-        n.getParam("pose_theta", current_theta);
+        n.getParam("starting_x", current_x);
+        n.getParam("starting_y", current_y);
+        n.getParam("starting_th", current_theta);
 
         sub_steer_speed = n.subscribe("/speed_steer", 1000, &odom::callback_sub_data, this);
         pub_custom_msg = n.advertise<first_project::Odom>("/custom_odometry", 1000); 
         pub_odom_msg = n.advertise<first_project::Odom>("/odometry", 1000);
 
         service = n.advertiseService("reset_odom", &odom::reset_odometry, this);
-
-        timer = n.createTimer(ros::Duration(0.02), &odom::callback_publisher_timer, this); 
     }
 
     void callback_sub_data(const geometry_msgs::Quaternion& msg){
         ros::Duration time_difference =  ros::Time::now() - current_time;
         current_time = ros::Time::now();
         
-        if (time_difference.toSec() < 0.05) 
+        if (time_init == true) 
             t_s = time_difference.toSec(); //time of sampling
-        else
+        else {
             t_s = 0;
+            time_init = true; }
+            
 
         alpha = -msg.y;
         R = d / tan(alpha);
@@ -101,24 +99,16 @@ public:
         odom_msg.twist.twist.linear.y = vy;
         odom_msg.twist.twist.linear.z = omega;
 
+        pub_custom_msg.publish(cust_msg);
+        pub_odom_msg.publish(odom_msg);
 
         transform.setOrigin(tf::Vector3(current_x, current_y, 0));
         q.setRPY(0, 0, current_theta);
         transform.setRotation(q);
+
+        br.sendTransform(tf::StampedTransform(transform, current_time, "odom", "base_link"));
     }
 
-    void callback_publisher_timer(const ros::TimerEvent& ev) {
-
-        if ((latest_sent_time - current_time).toSec() != 0) {
-            latest_sent_time = current_time;
-
-            pub_custom_msg.publish(cust_msg);
-            pub_odom_msg.publish(odom_msg);
-
-            br.sendTransform(tf::StampedTransform(transform, current_time, "odom", "base_link"));
-        }
-
-    }
 
     void integrations(double t_s) {
         current_x = current_x + v*t_s*cos(current_theta);
