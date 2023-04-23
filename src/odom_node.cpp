@@ -12,6 +12,8 @@
 
 #include "first_project/reset_odom.h"
 
+enum integration_methods {EULER, RUNGE_KUTTA, EXACT};
+
 class odom{
 
 private:
@@ -25,6 +27,8 @@ private:
     double t_s;
 
     bool time_init = false;
+
+    integration_methods integration_mode;
 
     ros::NodeHandle n;
 
@@ -51,6 +55,8 @@ public:
         n.getParam("starting_y", current_y);
         n.getParam("starting_th", current_theta);
 
+        integration_mode = EXACT;
+
         sub_steer_speed = n.subscribe("/speed_steer", 1000, &odom::callback_sub_data, this);
         pub_custom_msg = n.advertise<first_project::Odom>("/custom_odometry", 1000); 
         pub_odom_msg = n.advertise<first_project::Odom>("/odometry", 1000);
@@ -72,10 +78,7 @@ public:
         alpha = -msg.y;
         R = d / tan(alpha);
         v = msg.x;
-        if (alpha != 0)
-            omega = v / R;
-        else
-            omega = 0;
+        omega = v / R;
 
         integrations(t_s);   
 
@@ -111,11 +114,34 @@ public:
 
 
     void integrations(double t_s) {
-        current_x = current_x + v*t_s*cos(current_theta);
-        current_y = current_y + v*t_s*sin(current_theta);
-        vx = v*cos(current_theta);
-        vy = v*sin(current_theta);
-        current_theta = current_theta + omega*t_s;
+
+        if (integration_mode == EULER) {
+            current_x = current_x + v*t_s*cos(current_theta);
+            current_y = current_y + v*t_s*sin(current_theta);
+            vx = v*cos(current_theta);
+            vy = v*sin(current_theta);
+            current_theta = current_theta + omega*t_s;
+        }else if (integration_mode == RUNGE_KUTTA) {
+            current_x = current_x + v*t_s*cos(current_theta + (omega * t_s / 2));
+            current_y = current_y + v*t_s*sin(current_theta + (omega * t_s / 2));
+            vx = v*cos(current_theta);
+            vy = v*sin(current_theta);
+            current_theta = current_theta + omega*t_s;
+        }else if (integration_mode == EXACT) {
+            if (omega != 0){
+                double theta_k_1 = current_theta + omega*t_s;
+                current_x = current_x + (v/omega) * ( sin(theta_k_1) - sin(current_theta) );
+                current_x = current_x + (v/omega) * ( cos(theta_k_1) - cos(current_theta) );
+            }else {
+                current_x = current_x + v*t_s*cos(current_theta + (omega * t_s / 2));
+                current_y = current_y + v*t_s*sin(current_theta + (omega * t_s / 2));
+                vx = v*cos(current_theta);
+                vy = v*sin(current_theta);
+                current_theta = current_theta + omega*t_s;
+            }
+        }
+            
+        
     }
 
     bool reset_odometry(first_project::reset_odom::Request &req,first_project::reset_odom::Response &res){
