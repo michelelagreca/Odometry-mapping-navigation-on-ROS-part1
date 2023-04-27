@@ -26,7 +26,7 @@ private:
 
     double t_s;
 
-    bool time_init = false;
+    double frequency_rate;
 
     integration_methods integration_mode;
 
@@ -55,6 +55,8 @@ public:
         n.getParam("starting_y", current_y);
         n.getParam("starting_th", current_theta);
 
+        n.getParam("frequency_rate", frequency_rate);
+
         integration_mode = EXACT;
 
         sub_steer_speed = n.subscribe("/speed_steer", 1000, &odom::callback_sub_data, this);
@@ -68,11 +70,10 @@ public:
         ros::Duration time_difference =  ros::Time::now() - current_time;
         current_time = ros::Time::now();
         
-        if (time_init == true) 
+        if (time_difference.toSec() < frequency_rate) 
             t_s = time_difference.toSec(); //time of sampling
-        else {
+        else 
             t_s = 0;
-            time_init = true; }
             
 
         alpha = -msg.y;

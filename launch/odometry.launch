@@ -6,6 +6,8 @@
 
     <param name="use_sim_time" value="true"/>
 
+    <param name="frequency_rate" value="0.05"/>
+
     <node pkg="first_project" type="odom_node" name="odom" output="screen"/>
 
     <node pkg="tf" type="static_transform_publisher" name="front_left" args="1.85 0.93 0.0 0.81 0.0 3.14 base_link sick_front_left 100" />
