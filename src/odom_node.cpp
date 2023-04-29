@@ -57,7 +57,7 @@ public:
 
         n.getParam("frequency_rate", frequency_rate);
 
-        integration_mode = EULER;
+        integration_mode = EXACT;
 
         sub_steer_speed = n.subscribe("/speed_steer", 1000, &odom::callback_sub_data, this);
         pub_custom_msg = n.advertise<first_project::Odom>("/custom_odometry", 1000); 
@@ -132,7 +132,10 @@ public:
             if (omega != 0){
                 double theta_k_1 = current_theta + omega*t_s;
                 current_x = current_x + (v/omega) * ( sin(theta_k_1) - sin(current_theta) );
-                current_x = current_x + (v/omega) * ( cos(theta_k_1) - cos(current_theta) );
+                current_y = current_y - (v/omega) * ( cos(theta_k_1) - cos(current_theta) );
+                vx = v*cos(current_theta);
+                vy = v*sin(current_theta);
+                current_theta = theta_k_1;
             }else {
                 current_x = current_x + v*t_s*cos(current_theta + (omega * t_s / 2));
                 current_y = current_y + v*t_s*sin(current_theta + (omega * t_s / 2));
