@@ -57,11 +57,11 @@ public:
 
         n.getParam("frequency_rate", frequency_rate);
 
-        integration_mode = EXACT;
+        integration_mode = EULER;
 
         sub_steer_speed = n.subscribe("/speed_steer", 1000, &odom::callback_sub_data, this);
         pub_custom_msg = n.advertise<first_project::Odom>("/custom_odometry", 1000); 
-        pub_odom_msg = n.advertise<first_project::Odom>("/odometry", 1000);
+        pub_odom_msg = n.advertise<nav_msgs::Odometry>("/odometry", 1000);
 
         service = n.advertiseService("reset_odom", &odom::reset_odometry, this);
     }
@@ -159,7 +159,7 @@ public:
 
 int main(int argc, char **argv){
 
-    ros::init(argc, argv, "shuttle_odometry");
+    ros::init(argc, argv, "odom_node");
 
     odom my_odom;
 
