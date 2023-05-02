@@ -76,7 +76,7 @@ public:
             t_s = 0;
             
 
-        alpha = -msg.y;
+        alpha = msg.y;
         R = d / tan(alpha);
         v = msg.x;
         omega = v / R;
